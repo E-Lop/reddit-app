@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 
@@ -18,7 +19,7 @@ class UserController extends Controller
     /**
      * Stores a new user
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
         $data = $request->all();
         $user = User::create($data);
@@ -52,7 +53,7 @@ class UserController extends Controller
     /**
      * Updates a specific user
      */
-    public function update(Request $request, $id)
+    public function update(UserRequest $request, $id)
     {
         $data = $request->all();
         $selected_user = User::find($id);

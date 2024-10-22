@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FlairRequest;
 use Illuminate\Http\Request;
 use App\Models\Flair;
 
@@ -18,7 +19,7 @@ class FlairController extends Controller
     /**
      * Stores a new flair
      */
-    public function store(Request $request)
+    public function store(FlairRequest $request)
     {
         $data = $request->all();
         $flair = Flair::create($data);
@@ -52,7 +53,7 @@ class FlairController extends Controller
     /**
      * Updates a specific flair
      */
-    public function update(Request $request, $id)
+    public function update(FlairRequest $request, $id)
     {
         $data = $request->all();
         $selected_flair = Flair::find($id);

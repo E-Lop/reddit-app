@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CommentRequest;
 use Illuminate\Http\Request;
 use App\Models\Comment;
+use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
@@ -14,9 +16,10 @@ class CommentController extends Controller
     }
 
     // Stores a new comment
-    public function store(Request $request)
+    public function store(CommentRequest $request)
     {
         $data = $request->all();
+        $data['user_id'] = Auth::user()->id;
         $comment = Comment::create($data);
 
         return response()->json([
@@ -44,7 +47,7 @@ class CommentController extends Controller
     }
 
     // Updates a specific comment
-    public function update(Request $request, $id)
+    public function update(CommentRequest $request, $id)
     {
         $data = $request->all();
         $selected_comment = Comment::find($id);
@@ -94,5 +97,13 @@ class CommentController extends Controller
     public function indexOfCommentsWithChildren()
     {
         return Comment::whereNull('parent_id')->with('child')->get();
+    }
+
+    // Lista dei commenti a cui l'utente ha messo like
+    public function commentsLikedByUser()
+    {
+        return Comment::with('likes')->whereHas('likes', function ($query) {
+            $query->where('user_id', Auth::user()->id);
+        })->get();
     }
 }

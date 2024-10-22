@@ -57,7 +57,8 @@ Route::controller(SubredditController::class)->prefix('subreddits')->group(funct
     Route::get('indexWithFlair', 'indexWithFlair'); // lista di subreddit con i flair associati
     Route::get('indexWithUser', 'indexWithUser'); // lista di subreddit con gli utenti iscritti
     Route::get('{flair_id}/showByFlairID', 'showByFlairID'); // lista di subreddit con uno specifico flair_id
-    Route::get('{subreddit_id}/subWithPosts', 'subWithPosts');
+    Route::get('{subreddit_id}/subWithPosts', 'subWithPosts'); // lista di subreddit con i post associati
+    Route::get('subsSubscribedTo', 'subsSubscribedTo'); // lista di subreddit a cui l'utente è iscritto
 });
 
 // Rotte per i flair
@@ -79,6 +80,8 @@ Route::controller(PostController::class)->prefix('posts')->group(function () {
     Route::get('indexWithComments', 'indexWithComments'); // lista di post con i commenti associati
     Route::get('indexWithFlair', 'indexWithFlair'); // lista di post con i flair associati
     Route::get('{flair_id}/showByFlairID', 'showByFlairID'); // lista di post con uno specifico flair_id
+    Route::get('redditHome', 'redditHome'); // lista di post dei subreddit a cui l'utente è iscritto, ordinato per like (default) o per data
+    Route::get('postsLikedByUser', 'postsLikedByUser'); // lista di post a cui l'utente ha messo like
 });
 
 // Rotte per i commenti
@@ -90,6 +93,7 @@ Route::controller(CommentController::class)->prefix('comments')->group(function 
     Route::delete('{comment_id}/destroy', 'destroy');
     Route::get('indexOfCommentsWithComments', 'indexOfCommentsWithComments'); // lista di commenti a commenti
     Route::get('indexOfCommentsWithChildren', 'indexOfCommentsWithChildren'); // lista dei commenti con i loro commenti
+    Route::get('commentsLikedByUser', 'commentsLikedByUser'); // lista dei commenti a cui l'utente ha messo like
 });
 
 // Rotte per i like

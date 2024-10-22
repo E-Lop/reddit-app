@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SubredditRequest;
 use Illuminate\Http\Request;
 use App\Models\Subreddit;
 use App\Models\SubredditUser;
@@ -12,7 +13,7 @@ class SubredditController extends Controller
     /**
      * List of all subreddits
      */
-    public function index(Request $request)
+    public function index(SubredditRequest $request)
     {
         $subreddit = Subreddit::query();
         $data = $request->all();
@@ -26,10 +27,17 @@ class SubredditController extends Controller
 
         // ricerca per testo in nome o descrizione
         if (isset($data['filter_text'])) {
-            $subreddit->where('name', 'like', '%' . $data['filter_text'] . '%')
-                ->orWhere('description', 'like', '%' . $data['filter_text'] . '%');
+            $subreddit->where('name', 'like', '%' . $data['filter_text'] . '%');
         }
-        $subreddit = $subreddit->get();
+        // ritorna $subreddit con il numero di user_id, user_id si trova in subreddit_user
+
+
+        $subreddit = $subreddit->withCount('subreddit_user')
+            ->with('subreddit_user')
+            ->whereHas('subreddit_user', function ($q) {
+                $q->where('is_owner', false);
+            })
+            ->get();
 
         if ($subreddit->isEmpty()) {
             return response()->json([
@@ -47,7 +55,7 @@ class SubredditController extends Controller
     /**
      * Stores a new subreddit
      */
-    public function store(Request $request)
+    public function store(SubredditRequest $request)
     {
         $data = $request->all();
         $subreddit = Subreddit::create($data);
@@ -93,7 +101,7 @@ class SubredditController extends Controller
     /**
      * Updates a specific subreddit
      */
-    public function update(Request $request, $id)
+    public function update(SubredditRequest $request, $id)
     {
         $data = $request->all();
         $selected_subreddit = Subreddit::find($id);
@@ -145,6 +153,15 @@ class SubredditController extends Controller
     public function indexWithUser()
     {
         return Subreddit::with('subreddit_user')->get();
+    }
+
+    // lista subreddits a cui l'utente è iscritto
+    public function subsSubscribedTo()
+    {
+        return Subreddit::with('subreddit_user.users:id,username')->whereHas('subreddit_user', function ($q) {
+            $q->where('user_id', Auth::user()->id)
+                ->where('is_owner', false);
+        })->get();
     }
 
     // lista subreddit con flair ${id}

@@ -23,15 +23,37 @@ class LikeController extends Controller
         } else {
             $category = 'App\Models\Comment';
         }
+        info($data);
+
+        $existing_like = Like::where('likeable_id', $data['likeable_id'])
+            ->where('likeable_type', $category)
+            ->where('user_id', auth()->id())
+            ->first();
+        if ($existing_like !== null && $existing_like->is_upvoted == $data['is_upvoted']) {
+            $existing_like->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Like rimosso',
+            ]);
+        }
+        if ($existing_like !== null && $existing_like->is_upvoted != $data['is_upvoted']) {
+            $existing_like->update(['is_upvoted' => $data['is_upvoted']]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Like aggiornato',
+            ]);
+        }
 
 
         $data = [
             'user_id' => auth()->id(),
             'likeable_id' => $data['likeable_id'],
             'likeable_type' => $category,
-            'is_upvoted' => true,
+            'is_upvoted' => $data['is_upvoted'],
         ];
         $like = Like::create($data);
+
+        info($like);
 
         return response()->json([
             'status' => 'success',

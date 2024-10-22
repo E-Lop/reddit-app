@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PostRequest;
 use App\Models\Comment;
 use App\Models\FlairPost;
 use Illuminate\Http\Request;
@@ -13,10 +14,9 @@ use Psy\Command\WhereamiCommand;
 class PostController extends Controller
 {
     // List of all posts
-    public function index(Request $request)
+    public function index(PostRequest $request)
     {
         $data = $request->all();
-        // info($data['subreddit_id']);
         $posts = Post::where('subreddit_id', $data['subreddit_id']);
 
         /*if (isset($data['filter_text'])) {
@@ -44,7 +44,7 @@ class PostController extends Controller
             ->with('flair_post')
             ->with('likes')->withCount('likes');
 
-        if (isset($data['sort_by']) && $data['sort_by'] === 'likes') {
+        if (isset($data['order_by']) && $data['order_by'] === 'likes') {
             $posts->orderBy('likes_count', 'desc');
         } else {
             $posts->orderBy('created_at', 'desc');
@@ -59,7 +59,7 @@ class PostController extends Controller
     }
 
     // Stores a new post
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
 
         $data = $request->all();
@@ -156,7 +156,7 @@ class PostController extends Controller
     }
 
     // Updates a specific post
-    public function update(Request $request, $id)
+    public function update(PostRequest $request, $id)
     {
         $data = $request->all();
         $selected_post = Post::find($id);
@@ -228,5 +228,43 @@ class PostController extends Controller
             'status' => 'Post recuperati con successo',
             'posts' => $posts,
         ], 200);
+    }
+
+    public function redditHome(PostRequest $request)
+    {
+        $data = $request->all();
+        $posts = Post::with('subreddit:name,id')
+            ->withCount('likes')
+            ->whereHas('subreddit.subreddit_user', function ($q) {
+                $q->where('user_id', Auth::user()->id);
+            });
+
+
+        if (isset($data['order_by']) && $data['order_by'] === 'date') {
+            $posts->orderBy('created_at', 'desc');
+        } else {
+            $posts->orderBy('likes_count', 'desc');
+        }
+        $posts = $posts->get();
+
+        return response()->json([
+            'status' => 'success',
+            'posts' => $posts,
+        ],);
+    }
+
+    public function postsLikedByUser()
+    {
+        $posts = Post::with('likes')
+            ->with('comments')
+            ->whereHas('likes', function ($q) {
+                $q->where('user_id', Auth::user()->id);
+            })
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'posts' => $posts,
+        ]);
     }
 }
